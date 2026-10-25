@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage Hub - Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="justify-content: center; align-items: flex-start; background-color: var(--bg-color); overflow-y: auto; padding: 40px 20px;">
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</a>
+            <h2>Account Center</h2>
+            <!-- Theme Toggle in Profile -->
+            <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" style="margin-left: auto;"><i class="fa-solid fa-moon"></i></button>
+        </div>
+
+        <div class="profile-card">
+            <!-- Profile Picture & Badges -->
+            <div class="profile-pic-section">
+                <img id="profile-preview" src="https://via.placeholder.com/150" alt="Profile Picture">
+                <label for="profile-pic-upload" class="upload-label">
+                    <i class="fa-solid fa-camera"></i> Change Photo
+                </label>
+                <input type="file" id="profile-pic-upload" accept="image/*" onchange="previewImage(event)" style="display: none;">
+
+                <p id="joined-date" style="color: #888; font-size: 0.9rem; margin-top: 15px;"></p>
+                <span id="role-badge" style="display:none; background: var(--primary-color); color: white; padding: 3px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin-top: 5px;">Admin</span>
+            </div>
+
+            <!-- Account Stats (Default hidden, JS will show for normal users only) -->
+            <div id="account-stats" class="stats-container" style="display: none; justify-content: space-around; margin-bottom: 25px; background: var(--bg-color); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
+                <div style="text-align: center;">
+                    <h4 id="stat-chats" style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">0</h4>
+                    <small>Total Chats</small>
+                </div>
+                <div style="text-align: center;">
+                    <h4 id="stat-images" style="color: var(--primary-color); margin: 0; font-size: 1.5rem;">0</h4>
+                    <small>Images Analyzed</small>
+                </div>
+            </div>
+
+            <!-- Update Form -->
+            <form id="profile-form" onsubmit="updateProfile(event)">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="prof-name" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="prof-email" required>
+                </div>
+
+                <hr style="margin: 20px 0; border-color: var(--border-color);">
+                <h4>Change Password (Optional)</h4>
+                <div class="input-group">
+                    <label>New Password</label>
+                    <input type="password" id="prof-password" placeholder="Leave blank to keep current">
+                </div>
+
+                <button type="submit" class="save-btn">Save Changes</button>
+                <p id="msg-box" style="text-align: center; margin-top: 15px; font-weight: bold; display: none;"></p>
+            </form>
+        </div>
+
+        <!-- Danger Zone (Delete Account) -->
+        <div class="danger-zone" style="margin-top: 30px; padding: 20px; border: 1px solid #ff4d4d; border-radius: 15px; background: rgba(255, 77, 77, 0.05);">
+            <h3 style="color: #ff4d4d; margin-bottom: 10px;">Danger Zone</h3>
+            <p style="color: var(--text-color); font-size: 0.9rem; margin-bottom: 15px;">Once you delete your account, there is no going back. All your chats and data will be permanently erased.</p>
+            <button onclick="deleteAccount()" style="background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">Delete My Account</button>
+        </div>
+    </div>
+
+    <script>
+        let currentBase64Image = null;
+
+        // Load User Data & Stats
+        window.onload = async function() {
+            // Load Theme
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('#theme-toggle i').classList.replace('fa-moon', 'fa-sun');
+            }
+
+            const res = await fetch('/api/get_profile');
+            const data = await res.json();
+
+            if(res.ok) {
+                document.getElementById('prof-name').value = data.name;
+                document.getElementById('prof-email').value = data.email;
+                if(data.profile_pic) {
+                    document.getElementById('profile-preview').src = data.profile_pic;
+                }
+                document.getElementById('joined-date').innerText = `Member since: ${data.joined}`;
+
+                // YAHAN HAI MAIN LOGIC
+                if(data.role === 'admin') {
+                    // Agar Admin hai, toh Admin badge dikhao aur Stats HIDE kar do
+                    document.getElementById('role-badge').style.display = 'inline-block';
+                    document.getElementById('account-stats').style.display = 'none';
+                } else {
+                    // Agar Normal User hai, toh Stats SHOW karo
+                    document.getElementById('account-stats').style.display = 'flex';
+                    document.getElementById('stat-chats').innerText = data.total_chats;
+                    document.getElementById('stat-images').innerText = data.total_images;
+                }
+            }
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('#theme-toggle i');
+            if(document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Image Preview
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-preview').src = e.target.result;
+                    currentBase64Image = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Update Profile
+        async function updateProfile(e) {
+            e.preventDefault();
+            const msgBox = document.getElementById('msg-box');
+
+            const formData = {
+                name: document.getElementById('prof-name').value,
+                email: document.getElementById('prof-email').value,
+                password: document.getElementById('prof-password').value,
+                profile_pic: currentBase64Image
+            };
+
+            const res = await fetch('/api/update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await res.json();
+
+            msgBox.style.display = 'block';
+            if(res.ok) {
+                msgBox.style.color = 'green';
+                msgBox.innerText = '✅ ' + data.message;
+                document.getElementById('prof-password').value = '';
+            } else {
+                msgBox.style.color = 'red';
+                msgBox.innerText = '❌ ' + data.error;
+            }
+        }
+
+        // Delete Account
+        async function deleteAccount() {
+            const confirm1 = confirm("Are you sure you want to delete your account?");
+            if(!confirm1) return;
+
+            const confirmText = prompt("Type 'DELETE' in capital letters to confirm:");
+            if(confirmText !== 'DELETE') {
+                alert("Account deletion cancelled.");
+                return;
+            }
+
+            const res = await fetch('/api/delete_account', { method: 'DELETE' });
+            if(res.ok) {
+                alert("Your account has been deleted. Redirecting to home...");
+                window.location.href = '/';
+            } else {
+                alert("Error deleting account.");
+            }
+        }
+    </script>
+</body>
+</html>

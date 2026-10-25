@@ -1,0 +1,194 @@
+/* Reset & Basic Setup */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f8f5f2; /* Beautiful light cream theme */
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* Background Slider */
+.bg-slider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+}
+
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+}
+
+.slide.active {
+    opacity: 1; /* 100% visibility as requested */
+}
+
+/* Main Content Container */
+.main-content {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(248, 245, 242, 0.6); /* Slight overlay for readability */
+    backdrop-filter: blur(5px);
+}
+
+header {
+    margin-top: 10vh;
+}
+
+header h1 {
+    font-size: 4rem;
+    color: #4a3b32; /* Deep brown */
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+header .tagline {
+    font-size: 1.2rem;
+    color: #6b5b50;
+    margin-top: 10px;
+}
+
+/* Get Started Button */
+.start-btn-container {
+    margin: 40px 0 60px 0;
+}
+
+.get-started-btn {
+    text-decoration: none;
+    background: linear-gradient(135deg, #c59b63, #a67c52);
+    color: white;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    border-radius: 30px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(166, 124, 82, 0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.get-started-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(166, 124, 82, 0.6);
+}
+
+/* Info Sections (About & Contact) */
+.info-section {
+    background: rgba(255, 255, 255, 0.85);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid #e0d6cc;
+}
+
+.info-section h2 {
+    color: #8c6b4a;
+    margin-bottom: 15px;
+}
+
+.info-section p {
+    color: #555;
+    line-height: 1.6;
+}
+
+footer {
+    margin-top: auto;
+    padding: 20px;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 1s forwards;
+}
+
+.start-btn-container.fade-in { animation-delay: 0.3s; }
+.info-section.fade-in:nth-of-type(1) { animation-delay: 0.6s; }
+.info-section.fade-in:nth-of-type(2) { animation-delay: 0.9s; }
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Features Section (6 Cards) */
+.features-section {
+    width: 100%;
+    max-width: 1000px; /* Thoda wide taaki 3 cards ek line mein aayein */
+    margin: 40px 0;
+}
+
+.section-title {
+    font-size: 2rem;
+    color: #4a3b32;
+    margin-bottom: 30px;
+    text-align: center;
+    text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.8);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 10px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+    padding: 25px 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 4px solid #c59b63; /* Heritage Gold color */
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(166, 124, 82, 0.3);
+    background: #ffffff;
+}
+
+.feature-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.feature-card h3 {
+    color: #8c6b4a;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}

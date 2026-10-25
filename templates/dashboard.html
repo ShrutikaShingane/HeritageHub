@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage Hub - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="close-lightbox">&times;</span>
+        <img id="lightbox-img" src="">
+    </div>
+
+    <!-- Floating Actions (Copy & PDF) - Top Right -->
+    <div class="floating-actions" id="floating-actions" style="display: none;">
+        <button class="floating-btn" onclick="copyLastAIText()" title="Copy AI Response">
+            <i class="fa-solid fa-copy"></i>
+        </button>
+        <button class="floating-btn" onclick="exportChat()" title="Export PDF">
+            <i class="fa-solid fa-file-pdf"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2 style="color: var(--primary-color); text-align: center; margin-bottom: 20px; font-size: 1.8rem;">Heritage Hub</h2>
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <i class="fa-solid fa-plus"></i> New Chat
+            </button>
+        </div>
+        <div class="sidebar-history">
+            <p class="history-title">Recent Chats</p>
+            <ul id="chat-history-list"></ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <nav class="navbar" style="justify-content: flex-end; padding-right: 30px;">
+            <div class="nav-actions">
+                <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                <div class="profile-dropdown">
+                    <button class="icon-btn" onclick="toggleProfileMenu()"><i class="fa-solid fa-user"></i></button>
+                    <div class="dropdown-menu" id="profile-menu">
+                        <a href="/profile"><i class="fa-solid fa-user-gear"></i> Profile</a>
+                        <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="chat-container" id="chat-container">
+            <div class="welcome-chat" id="welcome-chat">
+                <h2>Welcome to Heritage Hub</h2>
+                <p>Click "+ New Chat" or drag an image here to begin.</p>
+            </div>
+        </div>
+
+        <div class="input-area" id="input-area" style="display: none;">
+            <div class="input-box" id="drop-zone">
+                <button class="attach-btn" onclick="document.getElementById('imageUpload').click()"><i class="fa-solid fa-image"></i></button>
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImagePreview(event)">
+                <button class="attach-btn" id="mic-btn" onclick="startVoiceInput()"><i class="fa-solid fa-microphone"></i></button>
+                <input type="text" id="chatInput" placeholder="Type, speak, or drag image here...">
+                <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+            <div id="drag-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(197,155,99,0.9); z-index:99; color:#fff; text-align:center; padding-top:20%; font-size:2rem;">
+                Drop Image to Upload
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChatId = null;
+        let currentImageFile = null;
+        let lastAIText = "";
+
+        // --- Initialization ---
+        window.onload = function() {
+            loadHistory();
+            setupDragAndDrop();
+        }
+
+        // --- History & Sidebar ---
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const chats = await res.json();
+                const list = document.getElementById('chat-history-list');
+                list.innerHTML = '';
+                chats.forEach(chat => {
+                    let li = document.createElement('li');
+                    li.className = 'history-item';
+                    li.innerHTML = `<span onclick="loadChat(${chat.id})">${chat.title}</span>
+                                    <i class="fa-solid fa-trash delete-chat" onclick="deleteChat(${chat.id}, event)"></i>`;
+                    list.appendChild(li);
+                });
+            } catch (e) { console.log("History error:", e); }
+        }
+
+        async function deleteChat(id, event) {
+            event.stopPropagation();
+            if(confirm("Delete this chat permanently?")) {
+                await fetch(`/api/delete_chat/${id}`, { method: 'DELETE' });
+                if(currentChatId === id) startNewChat();
+                loadHistory();
+            }
+        }
+
+        // --- LOAD CHAT (Image & Formatting & Modules Fix) ---
+        async function loadChat(chatId) {
+            currentChatId = chatId;
+            document.getElementById('input-area').style.display = 'block';
+            document.getElementById('floating-actions').style.display = 'flex';
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.innerHTML = '';
+            lastAIText = "";
+
+            const res = await fetch(`/api/chat/${chatId}`);
+            const messages = await res.json();
+
+            messages.forEach(msg => {
+                if (msg.sender === 'user') {
+                    let imgSrc = null;
+                    if (msg.image_path) {
+                        imgSrc = `data:image/jpeg;base64,${msg.image_path}`;
+                    }
+                    addUserMessage(msg.content, imgSrc);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'message ai-message';
+                    div.innerHTML = `<div class="content markdown-body">${marked.parse(msg.content)}</div>`;
+                    chatContainer.appendChild(div);
+                    addModulesToUI(div); // <--- HAR PURANE OUTPUT KE NICHE MODULES
+                    lastAIText = div.querySelector('.content').innerText;
+                }
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function startNewChat() {
+            currentChatId = null;
+            currentImageFile = null;
+            lastAIText = "";
+            document.getElementById('input-area').style.display = 'block';
+            document.getElementById('floating-actions').style.display = 'none';
+            document.getElementById('chat-container').innerHTML = `
+                <div class="welcome-chat" id="welcome-chat">
+                    <h2>New Discovery</h2>
+                    <p>Upload an image or type a message.</p>
+                </div>
+            `;
+            document.getElementById('chatInput').focus();
+        }
+
+        // --- Input Logic ---
+        function setupDragAndDrop() {
+            const overlay = document.getElementById('drag-overlay');
+            ['dragenter', 'dragover'].forEach(eventName => {
+                document.body.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    if(document.getElementById('input-area').style.display !== 'none') overlay.style.display = 'block';
+                }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                document.body.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    overlay.style.display = 'none';
+                }, false);
+            });
+            document.body.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleImagePreview({ target: { files: e.dataTransfer.files } });
+                }
+            });
+        }
+
+        function handleImagePreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                currentImageFile = file;
+                const chatContainer = document.getElementById('chat-container');
+                const welcome = document.getElementById('welcome-chat');
+                if(welcome) welcome.remove();
+
+                const preview = document.createElement('div');
+                preview.className = 'message user-message';
+                preview.id = 'image-preview';
+                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" style="max-width:200px; border-radius:10px; display:block; cursor:pointer;" onclick="openLightbox('${URL.createObjectURL(file)}')">`;
+                chatContainer.appendChild(preview);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function startVoiceInput() {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                const micBtn = document.getElementById('mic-btn');
+                recognition.start();
+                micBtn.style.color = 'red';
+                recognition.onresult = (event) => {
+                    document.getElementById('chatInput').value += event.results[0][0].transcript;
+                    micBtn.style.color = 'var(--primary-color)';
+                };
+                recognition.onerror = () => { micBtn.style.color = 'var(--primary-color)'; };
+                recognition.onend = () => { micBtn.style.color = 'var(--primary-color)'; };
+            } else {
+                alert("Voice input is not supported in this browser.");
+            }
+        }
+
+        // --- Send & Streaming ---
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message && !currentImageFile) return;
+
+            const chatContainer = document.getElementById('chat-container');
+            const welcome = document.getElementById('welcome-chat');
+            const preview = document.getElementById('image-preview');
+
+            if(welcome) welcome.remove();
+            if(preview) preview.remove();
+
+            addUserMessage(message, currentImageFile ? URL.createObjectURL(currentImageFile) : null);
+
+            input.value = '';
+            const imgFileToSend = currentImageFile;
+            currentImageFile = null;
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('floating-actions').style.display = 'flex';
+
+            const aiMsgDiv = document.createElement('div');
+            aiMsgDiv.className = 'message ai-message';
+            aiMsgDiv.innerHTML = `<div class="content markdown-body"><p style="color:var(--primary-color)"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing...</p></div>`;
+            chatContainer.appendChild(aiMsgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const formData = new FormData();
+            if (message) formData.append('text', message);
+            if (imgFileToSend) formData.append('image', imgFileToSend);
+            if (currentChatId) formData.append('chat_id', currentChatId);
+
+            try {
+                const response = await fetch('/api/chat', { method: 'POST', body: formData });
+                const newChatId = response.headers.get('X-Chat-ID');
+                if(newChatId) currentChatId = newChatId;
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                aiMsgDiv.innerHTML = `<div class="content markdown-body"></div>`;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    fullText += chunk;
+                    aiMsgDiv.querySelector('.content').innerHTML = marked.parse(fullText);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+
+                addModulesToUI(aiMsgDiv); // <--- NAYE OUTPUT KE NICHE MODULES
+                lastAIText = aiMsgDiv.querySelector('.content').innerText;
+                loadHistory();
+
+            } catch (error) {
+                aiMsgDiv.innerHTML = `<div class="content" style="color:red">Error: ${error.message}</div>`;
+            }
+        }
+
+        function addUserMessage(text, imgSrc) {
+            const chatContainer = document.getElementById('chat-container');
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            let html = '';
+            if (imgSrc) html += `<img src="${imgSrc}" style="max-width:200px; border-radius:10px; margin-bottom:10px; display:block; cursor:pointer;" onclick="openLightbox('${imgSrc}')">`;
+            if (text) html += `<p>${text}</p>`;
+            div.innerHTML = html;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // --- 6 Modules (Niche wale buttons) ---
+        function addModulesToUI(parentDiv) {
+            // Condition hatadi gayi hai taaki har baar naye buttons ban sakein
+            const modules = ["HeritageCheck", "Heritage Origin Finder", "Heritage Time Travel Map", "Heritage Connection Graph", "Preservation Dashboard", "Customize Product"];
+            let container = document.createElement('div');
+            container.className = 'modules-container';
+            modules.forEach(mod => {
+                let btn = document.createElement('button');
+                btn.className = 'module-btn';
+                btn.innerText = mod;
+                btn.onclick = () => triggerModule(mod);
+                container.appendChild(btn);
+            });
+            parentDiv.appendChild(container);
+        }
+
+        // --- FLOATING Actions (Copy & PDF) ---
+        function copyLastAIText() {
+            if(lastAIText) {
+                navigator.clipboard.writeText(lastAIText).then(() => {
+                    let btn = document.querySelector('.floating-actions button:first-child');
+                    let originalHTML = btn.innerHTML;
+                    btn.innerHTML = `<i class="fa-solid fa-check" style="color: green;"></i>`;
+                    setTimeout(() => btn.innerHTML = originalHTML, 2000);
+                });
+            } else {
+                alert("No AI text to copy yet!");
+            }
+        }
+
+        function exportChat() {
+            if(currentChatId) window.open(`/api/export_pdf/${currentChatId}`, '_blank');
+            else alert("Please analyze an image first to export.");
+        }
+
+        async function triggerModule(moduleName) {
+            document.getElementById('chatInput').value = `Detailed analysis for ${moduleName}`;
+
+            const formData = new FormData();
+            formData.append('text', `Provide detailed analysis for: ${moduleName}`);
+            formData.append('chat_id', currentChatId);
+            formData.append('is_module_click', 'true');
+            formData.append('module_name', moduleName);
+
+            const chatContainer = document.getElementById('chat-container');
+            const aiMsgDiv = document.createElement('div');
+            aiMsgDiv.className = 'message ai-message';
+            aiMsgDiv.innerHTML = `<div class="content markdown-body"><p style="color:var(--primary-color)"><i class="fa-solid fa-spinner fa-spin"></i> Generating ${moduleName}...</p></div>`;
+            chatContainer.appendChild(aiMsgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const response = await fetch('/api/chat', { method: 'POST', body: formData });
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
+            aiMsgDiv.innerHTML = `<div class="content markdown-body"></div>`;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value);
+                fullText += chunk;
+                aiMsgDiv.querySelector('.content').innerHTML = marked.parse(fullText);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            addModulesToUI(aiMsgDiv); // <--- MODULE CLICK KE OUTPUT KE NICHE BHI MODULES
+            lastAIText = aiMsgDiv.querySelector('.content').innerText;
+
+            // Fir visualizations (Graph/Map/Timeline) render karein
+            if (moduleName === 'Preservation Dashboard') renderGraph(aiMsgDiv);
+            if (moduleName === 'Heritage Time Travel Map') renderTimeline(aiMsgDiv);
+            if (moduleName === 'Heritage Origin Finder') renderMap(aiMsgDiv);
+            if (moduleName === 'Customize Product') renderProductMockup(aiMsgDiv);
+        }
+
+        // --- Visualizations ---
+        function renderTimeline(parentDiv) {
+            let timeline = document.createElement('div');
+            timeline.className = 'interactive-timeline';
+            timeline.innerHTML = `
+                <div class="timeline-line"></div>
+                <div class="timeline-point"><span>2500 BCE</span><small>Built</small></div>
+                <div class="timeline-point"><span>500 BCE</span><small>Rediscovered</small></div>
+                <div class="timeline-point"><span>2024 CE</span><small>Preserved</small></div>
+            `;
+            parentDiv.appendChild(timeline);
+        }
+
+        function renderMap(parentDiv) {
+            let map = document.createElement('div');
+            map.className = 'map-mockup';
+            map.innerHTML = `<p><i class="fa-solid fa-location-dot"></i> <b>Origin:</b> Giza Plateau, Egypt</p>
+                             <div class="map-img" style="background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Giza_Pyramid_Complex_51j.PNG/800px-Giza_Pyramid_Complex_51j.PNG') center/cover;"></div>`;
+            parentDiv.appendChild(map);
+        }
+
+        function renderProductMockup(parentDiv) {
+            let mockup = document.createElement('div');
+            mockup.className = 'product-mockup';
+            mockup.innerHTML = `<i class="fa-solid fa-mug-hot fa-3x"></i> <span>Preview on Heritage Mug</span>`;
+            parentDiv.appendChild(mockup);
+        }
+
+        function renderGraph(parentDiv) {
+            const canvas = document.createElement('canvas');
+            canvas.style.maxWidth = '400px';
+            canvas.style.marginTop = '20px';
+            parentDiv.appendChild(canvas);
+            new Chart(canvas, { type: 'bar', data: { labels: ['Climate', 'Structure', 'Bio', 'Risk'], datasets: [{ data: [85, 92, 15, 20], backgroundColor: ['#c59b63', '#4a90e2', '#e25b5b', '#f5a623'] }] } });
+        }
+
+        // --- Lightbox & UI Toggles ---
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').style.display = 'flex';
+        }
+        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+        function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+        function toggleProfileMenu() { document.getElementById('profile-menu').classList.toggle('show'); }
+        function logout() { window.location.href = '/logout'; }
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
+</body>
+</html>

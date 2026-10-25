@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage Hub - Login / Signup</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Back to Home Button -->
+    <a href="/" class="back-home-btn">
+        <i class="fa-solid fa-arrow-left"></i> Back to Home
+    </a>
+
+    <div class="auth-container">
+        <!-- Background Circles for Design -->
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+
+        <div class="form-box">
+            <!-- Toggle Buttons -->
+            <div class="button-box">
+                <div id="btn"></div>
+                <button type="button" class="toggle-btn" onclick="login()">Log In</button>
+                <button type="button" class="toggle-btn" onclick="register()">Sign Up</button>
+            </div>
+
+            <!-- Alert Message Box -->
+            <div id="alert-box" class="alert-box"></div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="input-group" style="opacity: 1; transition: 0.5s;" onsubmit="handleLogin(event)">
+                <select class="input-field" id="login-role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <input type="email" class="input-field" id="login-email" placeholder="Email" required>
+
+                <!-- Password with Eye Icon -->
+                <div class="password-wrapper">
+                    <input type="password" class="input-field" id="login-password" placeholder="Password" required>
+                    <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('login-password', this)"></i>
+                </div>
+
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="register-form" class="input-group" style="opacity: 0; pointer-events: none; transition: 0.5s;" onsubmit="handleSignup(event)">
+                <input type="text" class="input-field" id="reg-name" placeholder="Full Name" required>
+                <input type="email" class="input-field" id="reg-email" placeholder="Email" required>
+
+                <!-- Password with Eye Icon -->
+                <div class="password-wrapper">
+                    <input type="password" class="input-field" id="reg-password" placeholder="Password" required>
+                    <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('reg-password', this)"></i>
+                </div>
+
+                <select class="input-field" id="reg-role" required>
+                    <option value="" disabled selected>Register As</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="submit-btn">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Form Toggle Animation
+        var x = document.getElementById("login-form");
+        var y = document.getElementById("register-form");
+        var z = document.getElementById("btn");
+
+        // Password Show/Hide Function
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+        function register() {
+            x.style.opacity = "0";
+            x.style.pointerEvents = "none";
+            y.style.opacity = "1";
+            y.style.pointerEvents = "auto";
+            y.style.left = "50px";
+            z.style.left = "110px";
+            document.getElementById("alert-box").style.display = "none";
+        }
+
+        function login() {
+            y.style.opacity = "0";
+            y.style.pointerEvents = "none";
+            x.style.opacity = "1";
+            x.style.pointerEvents = "auto";
+            x.style.left = "50px";
+            z.style.left = "0px";
+            document.getElementById("alert-box").style.display = "none";
+        }
+
+        // Alert Box Helper
+        function showAlert(message, isSuccess) {
+            var alertBox = document.getElementById("alert-box");
+            alertBox.style.display = "block";
+            alertBox.innerText = message;
+            alertBox.className = isSuccess ? "alert-box success" : "alert-box error";
+
+            if(isSuccess) {
+                setTimeout(() => { alertBox.style.display = "none"; }, 3000);
+            }
+        }
+
+        // Handle Login (API Call)
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const role = document.getElementById('login-role').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ ' + data.message, true);
+                    setTimeout(() => {
+                        if(data.role === 'admin') window.location.href = '/admin';
+                        else window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showAlert('❌ ' + data.error, false);
+                }
+            } catch (error) {
+                showAlert('❌ Server connection failed', false);
+            }
+        }
+
+        // Handle Signup (API Call)
+        async function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const role = document.getElementById('reg-role').value;
+
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('✅ ' + data.message, true);
+                    setTimeout(() => { login(); }, 1500);
+                } else {
+                    showAlert('❌ ' + data.error, false);
+                }
+            } catch (error) {
+                showAlert('❌ Server connection failed', false);
+            }
+        }
+
+        // Check if user just logged out
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('msg') === 'logout_success') {
+                let toast = document.createElement('div');
+                toast.className = 'logout-toast';
+                toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> You have been logged out successfully!`;
+                document.body.appendChild(toast);
+
+                setTimeout(() => toast.classList.add('show'), 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+
+                window.history.replaceState({}, document.title, "/login");
+            }
+        }
+    </script>
+</body>
+</html>

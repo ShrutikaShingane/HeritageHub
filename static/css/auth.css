@@ -1,0 +1,235 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: #f8f5f2; /* Light heritage theme */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Background Decorative Circles */
+.auth-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0cbb2, #c59b63);
+    opacity: 0.5;
+    z-index: 0;
+}
+
+.circle1 {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    left: -100px;
+    animation: float 6s infinite alternate;
+}
+
+.circle2 {
+    width: 300px;
+    height: 300px;
+    bottom: -50px;
+    right: -50px;
+    animation: float 8s infinite alternate-reverse;
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(30px); }
+}
+
+/* Glassmorphism Form Box */
+.form-box {
+    position: relative;
+    width: 380px;
+    height: 550px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    padding: 20px;
+    z-index: 1;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.5);
+}
+
+/* Toggle Buttons */
+.button-box {
+    width: 220px;
+    margin: 30px auto;
+    position: relative;
+    box-shadow: 0 0 20px 9px rgba(197, 155, 99, 0.1);
+    border-radius: 30px;
+    display: flex;
+}
+
+.toggle-btn {
+    padding: 10px 30px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    outline: none;
+    position: relative;
+    font-weight: bold;
+    color: #555;
+    flex: 1;
+}
+
+#btn {
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 110px;
+    height: 100%;
+    background: linear-gradient(135deg, #c59b63, #a67c52);
+    border-radius: 30px;
+    transition: .5s;
+}
+
+/* Forms Inputs */
+.input-group {
+    position: absolute;
+    width: 280px;
+    transition: .5s;
+    top: 100px;
+    left: 50px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    background: rgba(255,255,255,0.9);
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+.input-field:focus {
+    border-color: #c59b63;
+    box-shadow: 0 0 8px rgba(197, 155, 99, 0.3);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #c59b63, #a67c52);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(166, 124, 82, 0.4);
+}
+
+/* Alert Box */
+.alert-box {
+    display: none;
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* ========================================= */
+/* Back Button Styling */
+/* ========================================= */
+.back-home-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    text-decoration: none;
+    color: #555;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.back-home-btn:hover {
+    background: #c59b63; /* Heritage Gold */
+    color: white;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 20px rgba(197, 155, 99, 0.3);
+    border-color: #c59b63;
+}
+
+/* ========================================= */
+/* Password Show/Hide Styling */
+/* ========================================= */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Input ko thodi jagah dein taaki icon fit ho sake */
+.password-wrapper .input-field {
+    padding-right: 45px;
+}
+
+/* Eye Icon ki styling */
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: 0.3s;
+    z-index: 2;
+}
+
+.toggle-password:hover {
+    color: #c59b63; /* Heritage Gold on hover */
+}

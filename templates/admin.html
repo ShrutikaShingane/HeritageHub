@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage Hub - Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Admin Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header" style="text-align: center; padding: 20px 0;">
+            <h2 style="color: var(--primary-color); font-size: 1.8rem; font-weight: 800; letter-spacing: 1px;">Admin Panel</h2>
+            <p style="font-size: 0.85rem; color: #888; margin-top: 5px;">Heritage Hub</p>
+        </div>
+        <div class="sidebar-history" style="margin-top: 10px;">
+            <p class="history-title">Management</p>
+            <li class="history-item active-tab" onclick="switchTab('overview', this)"><i class="fa-solid fa-chart-pie"></i> Overview</li>
+            <li class="history-item" onclick="switchTab('users', this)"><i class="fa-solid fa-users"></i> Manage Users</li>
+            <li class="history-item" onclick="switchTab('chats', this)"><i class="fa-solid fa-comments"></i> Global History</li>
+            <li class="history-item" onclick="switchTab('content', this)"><i class="fa-solid fa-pen-to-square"></i> Content Editor</li>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Top Navbar (Theme & Profile) -->
+        <nav class="navbar">
+            <div class="nav-logo">Heritage Hub</div>
+            <div class="nav-actions">
+                <!-- Theme Toggle -->
+                <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="profile-dropdown">
+                    <button class="icon-btn" onclick="toggleProfileMenu()">
+                        <i class="fa-solid fa-user"></i>
+                    </button>
+                    <div class="dropdown-menu" id="profile-menu">
+                        <a href="/profile"><i class="fa-solid fa-user-gear"></i> Admin Profile</a>
+                        <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <div style="padding: 30px; overflow-y: auto; flex: 1;">
+
+            <!-- 1. OVERVIEW TAB -->
+            <div id="tab-overview" class="admin-tab">
+                <h1 style="color: var(--primary-color); margin-bottom: 20px; font-size: 2rem;">Dashboard Overview</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fa-solid fa-users fa-2x" style="color: #4a90e2;"></i>
+                        <h3 id="stat-users">0</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-comments fa-2x" style="color: #c59b63;"></i>
+                        <h3 id="stat-chats">0</h3>
+                        <p>Total Chats</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-image fa-2x" style="color: #e25b5b;"></i>
+                        <h3 id="stat-images">0</h3>
+                        <p>Images Analyzed</p>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div style="background: var(--sidebar-bg); padding: 20px; border-radius: 15px; margin-top: 30px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px var(--shadow-color);">
+                    <h3 style="margin-bottom: 15px; color: var(--text-color);">Activity - Last 7 Days</h3>
+                    <canvas id="adminChart" height="80"></canvas>
+                </div>
+
+                <div style="background: var(--sidebar-bg); padding: 25px; border-radius: 15px; margin-top: 30px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px var(--shadow-color);">
+                    <h3 style="margin-bottom: 15px; color: var(--text-color);">System Status</h3>
+                    <p style="margin-bottom: 10px; font-size: 1.05rem;"><i class="fa-solid fa-circle-check" style="color: #28a745;"></i> Database Connection: <b>Active</b></p>
+                    <p style="font-size: 1.05rem;"><i class="fa-solid fa-circle-check" style="color: #28a745;"></i> Gemini AI API: <b>Active</b></p>
+                </div>
+            </div>
+
+            <!-- 2. USERS TAB -->
+            <div id="tab-users" class="admin-tab" style="display: none;">
+                <h1 style="color: var(--primary-color); margin-bottom: 20px; font-size: 2rem;">Manage Users</h1>
+
+                <!-- Search & Filter Bar -->
+                <div class="filter-bar">
+                    <input type="text" id="search-input" placeholder="Search by name or email..." onkeyup="loadUsers()">
+
+                    <select id="role-filter" onchange="loadUsers()">
+                        <option value="all">All Roles</option>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <select id="status-filter" onchange="loadUsers()">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="blocked">Blocked</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. CHATS TAB -->
+            <div id="tab-chats" class="admin-tab" style="display: none;">
+                <h1 style="color: var(--primary-color); margin-bottom: 20px; font-size: 2rem;">Global Chat History</h1>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Chat ID</th>
+                                <th>Title</th>
+                                <th>User</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chats-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. CONTENT TAB -->
+            <div id="tab-content" class="admin-tab" style="display: none;">
+                <h1 style="color: var(--primary-color); margin-bottom: 20px; font-size: 2rem;">Welcome Page Editor</h1>
+                <div style="background: var(--sidebar-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border-color); max-width: 800px; box-shadow: 0 4px 15px var(--shadow-color);">
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block; color: var(--text-color);">About Us Text</label>
+                        <textarea id="edit-about" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); outline: none;"></textarea>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold; margin-bottom: 10px; display: block; color: var(--text-color);">Contact Us Text</label>
+                        <textarea id="edit-contact" rows="4" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); outline: none;"></textarea>
+                    </div>
+                    <button class="save-btn" onclick="saveContent()" style="width: 200px; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;">Save Changes</button>
+                    <p id="content-msg" style="margin-top: 15px; font-weight: bold; color: green; display: none;">✅ Content Updated!</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Theme Toggle Logic ---
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('#theme-toggle i');
+            if(document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+            // Chart ko re-render karein taaki colors update ho jayein
+            if(myChart) loadChart();
+        }
+
+        // --- Profile Menu Toggle ---
+        function toggleProfileMenu() {
+            document.getElementById('profile-menu').classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown')) {
+                document.getElementById('profile-menu').classList.remove('show');
+            }
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // --- Admin Logic ---
+        let myChart = null;
+
+        window.onload = function() {
+            loadStats();
+        }
+
+        function switchTab(tabName, element) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.history-item').forEach(item => item.classList.remove('active-tab'));
+
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            element.classList.add('active-tab');
+
+            if(tabName === 'users') loadUsers();
+            if(tabName === 'chats') loadChats();
+            if(tabName === 'content') loadContent();
+            if(tabName === 'overview') loadChart();
+        }
+
+        // --- Stats & Chart ---
+        async function loadStats() {
+            const res = await fetch('/api/admin/stats');
+            const data = await res.json();
+            if(res.ok) {
+                document.getElementById('stat-users').innerText = data.users;
+                document.getElementById('stat-chats').innerText = data.chats;
+                document.getElementById('stat-images').innerText = data.images;
+            }
+            loadChart();
+        }
+
+        async function loadChart() {
+            const res = await fetch('/api/admin/chart_data');
+            const data = await res.json();
+            if(!res.ok) return;
+
+            const labels = data.users.map(item => item.date);
+            const userCounts = data.users.map(item => item.count);
+            const imageCounts = data.images.map(item => item.count);
+
+            const ctx = document.getElementById('adminChart').getContext('2d');
+
+            if(myChart) myChart.destroy();
+
+            const textColor = document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#2c3e50';
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'New Users',
+                            data: userCounts,
+                            borderColor: '#4a90e2',
+                            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Images Analyzed',
+                            data: imageCounts,
+                            borderColor: '#c59b63',
+                            backgroundColor: 'rgba(197, 155, 99, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        x: { ticks: { color: textColor } },
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: textColor } }
+                    }
+                }
+            });
+        }
+
+        // --- Users Logic ---
+        async function loadUsers() {
+            const search = document.getElementById('search-input').value;
+            const role = document.getElementById('role-filter').value;
+            const status = document.getElementById('status-filter').value;
+
+            const res = await fetch(`/api/admin/users?search=${search}&role=${role}&status=${status}`);
+            const users = await res.json();
+
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                let statusBadge = user.is_blocked
+                    ? `<span style="color: #ff4d4d; font-weight: bold; background: rgba(255,77,77,0.1); padding: 4px 8px; border-radius: 5px;">Blocked</span>`
+                    : `<span style="color: #28a745; font-weight: bold; background: rgba(40,167,69,0.1); padding: 4px 8px; border-radius: 5px;">Active</span>`;
+
+                let actionBtns = '';
+                if (user.role === 'admin') {
+                    actionBtns = `<span style="color: #888;">Admin</span>`;
+                } else {
+                    actionBtns += `<button onclick="toggleBlock(${user.id})" style="padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; background: ${user.is_blocked ? '#28a745' : '#ff4d4d'}; color: white; margin-right: 5px;">
+                        ${user.is_blocked ? 'Unblock' : 'Block'}
+                    </button>`;
+
+                    actionBtns += `<button onclick="promoteUser(${user.id})" style="padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; background: #4a90e2; color: white;">
+                        <i class="fa-solid fa-arrow-up"></i> Promote
+                    </button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${user.id}</td>
+                        <td><b>${user.name}</b></td>
+                        <td>${user.email}</td>
+                        <td><span style="background: var(--primary-color); color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8rem;">${user.role.toUpperCase()}</span></td>
+                        <td>${user.joined}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionBtns}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function toggleBlock(id) {
+            await fetch(`/api/admin/toggle_block/${id}`, { method: 'POST' });
+            loadUsers();
+        }
+
+        async function promoteUser(id) {
+            if(confirm("Are you sure you want to promote this user to Admin?")) {
+                await fetch(`/api/admin/promote/${id}`, { method: 'POST' });
+                loadUsers();
+            }
+        }
+
+        // --- Chats Logic ---
+        async function loadChats() {
+            const res = await fetch('/api/admin/chats');
+            const chats = await res.json();
+            const tbody = document.getElementById('chats-table-body');
+            tbody.innerHTML = '';
+
+            chats.forEach(chat => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${chat.id}</td>
+                        <td><b>${chat.title}</b></td>
+                        <td>${chat.user_name}</td>
+                        <td>${chat.date}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Content Editor Logic ---
+        async function loadContent() {
+            const res = await fetch('/api/admin/get_content');
+            const data = await res.json();
+            if(res.ok) {
+                document.getElementById('edit-about').value = data.about_us || '';
+                document.getElementById('edit-contact').value = data.contact_us || '';
+            }
+        }
+
+        async function saveContent() {
+            const about = document.getElementById('edit-about').value;
+            const contact = document.getElementById('edit-contact').value;
+
+            const res = await fetch('/api/admin/update_content', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ about_us: about, contact_us: contact })
+            });
+
+            if(res.ok) {
+                const msg = document.getElementById('content-msg');
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
+            }
+        }
+    </script>
+</body>
+</html>
