@@ -1,77 +1,109 @@
-🏛️ Heritage Hub - AI-Powered Heritage Object Recognition System
-Heritage Hub is an advanced, AI-driven web application designed to identify, analyze, and preserve the history of ancient artifacts, monuments, and heritage objects. Built with Python (Flask), MySQL, and Groq (Llama 3 Vision), it provides a seamless, ChatGPT-like experience for history enthusiasts, archaeologists, and researchers.
+# 🏛️ Heritage Hub - AI-Powered Heritage Object Recognition System
 
-🚀 Features
-AI Image Analysis: Upload any heritage object (coins, statues, inscriptions) and get detailed, museum-quality research reports.
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)
+![Flask](https://img.shields.io/badge/Flask-2.0%2B-black?style=for-the-badge&logo=flask)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
+![Groq](https://img.shields.io/badge/AI-Groq_%7C_Llama_3-red?style=for-the-badge)
 
-Ultra-Detailed Reports: AI generates 10-12 paragraph long responses, including historical context, creator details, inscriptions translation, and current status.
+**Heritage Hub** is an advanced, AI-driven web application designed to identify, analyze, and preserve the history of ancient artifacts, monuments, and heritage objects. Built with Python (Flask), MySQL, and Groq API (Qwen/Llama Vision), it provides a seamless, ChatGPT-like experience for history enthusiasts, archaeologists, and researchers.
 
-Smart Auto-Title Generation: Chats automatically name themselves based on the uploaded image (e.g., "Shivaji Rajmudra").
+---
 
-Chat History & Persistence: All conversations are securely saved in MySQL and can be accessed from the sidebar.
+## 📖 Table of Contents
+- [Key Features](#-key-features)
+- [Core Modules](#-our-core-modules)
+- [Tech Stack](#-tech-stack)
+- [Installation & Setup](#-installation--setup)
+- [Database Schema](#-database-schema)
+- [Admin Panel Features](#-admin-panel-features)
+- [Project Structure](#-project-structure)
 
-PDF Export: Download your research reports as beautifully formatted PDF documents.
+---
 
-Voice Input: Speak your queries using the built-in microphone feature.
+## ✨ Key Features
 
-Dark/Light Theme: Toggle between themes for a comfortable viewing experience.
+- **AI Image Analysis:** Upload any heritage object and get detailed, museum-quality research reports instantly.
+- **Ultra-Detailed Reports (10-12 Paragraphs):** AI generates deep insights including historical context, creator details, inscriptions translation, and current status.
+- **Smart Auto-Title Generation:** Chats automatically name themselves based on the image (e.g., "Shivaji Rajmudra").
+- **PDF Export:** Download beautifully formatted research reports as PDF documents.
+- **Chat History:** All conversations are securely saved in MySQL and easily accessible from the sidebar.
+- **Voice Input:** Speak your queries using the built-in microphone feature.
+- **Dark/Light Theme:** Toggle between themes for a comfortable viewing experience.
+- **Role-Based Access:** Separate interfaces for normal Users and Admins.
 
-Role-Based Access Control: Separate dashboards for normal Users and Admins.
+---
 
-🧩 Our Core Modules (6 Features)
-Heritage Hub provides 6 specialized interactive modules generated after every AI analysis. These modules help users dive deeper into the historical context:
+## 🧩 Our Core Modules
 
-🔍 HeritageCheck (Site Verification): Instant site verification and artifact authentication using advanced AI.
+After every AI analysis, Heritage Hub provides 6 specialized interactive modules to dive deeper:
 
-🗺️ Heritage Origin Finder (Cultural Tracing): Trace the cultural roots and geographical origins of any ancient object.
+| Module | Description |
+| :--- | :--- |
+| 🔍 **HeritageCheck** | Instant site verification and artifact authentication using advanced AI. |
+| 🗺️ **Heritage Origin Finder** | Trace the cultural roots and geographical origins of any ancient object. |
+| 🕰️ **Heritage Time Travel Map** | Visualize the journey of an artifact across different historical eras. |
+| 🕸️ **Heritage Connection Graph** | Discover how different heritage sites and historical figures are linked. |
+| 📊 **Preservation Dashboard** | Track and analyze the condition and preservation needs of artifacts. |
+| 🛍️ **Customize Product** | Design and order customized heritage-inspired merchandise securely. |
 
-🕰️ Heritage Time Travel Map (Visualization): Visualize the journey of an artifact across different historical eras.
+---
 
-🕸️ Heritage Connection Graph (Network Analysis): Discover how different heritage sites and historical figures are linked.
+## 🛠️ Tech Stack
 
-📊 Preservation Dashboard (Analytics): Track and analyze the condition and preservation needs of artifacts.
+**Frontend:**
+- HTML5, CSS3, JavaScript (Vanilla)
+- Chart.js (For interactive data visualization)
+- FontAwesome (Icons)
+- Marked.js (Markdown parsing)
 
-🛍️ Customize a Heritage Product (Monetization): Design and order customized heritage-inspired merchandise securely.
+**Backend:**
+- Python 3.x
+- Flask (Web Framework)
+- MySQL (Relational Database)
+- Groq API (LLM for Vision & Text)
+- `xhtml2pdf` (For generating beautiful PDFs)
 
-🛠️ Tech Stack
-Frontend: HTML5, CSS3, Vanilla JavaScript, Chart.js
+---
 
-Backend: Python 3.x, Flask
+## ⚙️ Installation & Setup
 
-Database: MySQL
+Follow these steps to run the project on your local machine:
 
-AI Engine: Groq API (using qwen/qwen3.8-27b for Vision and Text)
-
-PDF Generation: xhtml2pdf
-
-Image Processing: Pillow (PIL)
-
-⚙️ Installation & Setup
-Follow these steps to run the project locally:
-
-1. Clone the Repository
-bash
-git clone https://github.com/your-username/HeritageHub.git
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ShrutikaShingane/HeritageHub.git
 cd HeritageHub
-2. Set Up Virtual Environment & Install Dependencies
+2. Create Virtual Environment & Install Dependencies
 bash
 python -m venv venv
-# Activate venv (Windows)
+# Windows
 venv\Scripts\activate
-# Activate venv (Mac/Linux)
+# Mac/Linux
 source venv/bin/activate
 
 pip install -r requirements.txt
-(Dependencies include: flask, mysql-connector-python, groq, python-dotenv, pillow, xhtml2pdf, fpdf)
+3. Environment Variables (.env)
+Create a .env file in the root directory and add your credentials:
 
-3. Database Setup (MySQL)
+env
+GROQ_API_KEY=your_groq_api_key_here
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=heritage_hub
+4. Run the Application
+bash
+python app.py
+Open your browser and navigate to http://127.0.0.1:5000
+
+🗄️ Database Schema
 Open your MySQL command line and run the following commands:
 
 sql
 CREATE DATABASE heritage_hub;
 USE heritage_hub;
 
--- Create Users Table
+-- Users Table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -83,7 +115,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create Chats Table
+-- Chats Table
 CREATE TABLE chats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -92,7 +124,7 @@ CREATE TABLE chats (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Create Messages Table
+-- Messages Table
 CREATE TABLE messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     chat_id INT NOT NULL,
@@ -103,7 +135,7 @@ CREATE TABLE messages (
     FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
 );
 
--- Create Site Content Table (For Admin CMS)
+-- Site Content Table
 CREATE TABLE site_content (
     id INT PRIMARY KEY DEFAULT 1,
     about_us TEXT,
@@ -111,62 +143,43 @@ CREATE TABLE site_content (
 );
 
 INSERT INTO site_content (id, about_us, contact_us) VALUES (1, 'Welcome to Heritage Hub.', 'support@heritagehub.com');
-4. Environment Variables (.env)
-Create a .env file in the root directory and add your credentials:
+🛡️ Admin Panel Features
+Heritage Hub comes with a powerful Admin Panel (/admin) providing full control over the platform:
 
-env
-GROQ_API_KEY=your_groq_api_key_here
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=heritage_hub
-5. Run the Application
-bash
-python app.py
-Open your browser and go to http://127.0.0.1:5000
+Dashboard Analytics: Real-time graphs of user registrations and image analyses.
+
+User Management: Search, filter, block/unblock, and promote users to Admins.
+
+Global Chat History: View what users are searching and analyzing.
+
+Content Editor: Dynamically update the "About Us" and "Contact Us" sections on the landing page without touching the code.
 
 📁 Project Structure
 text
 HeritageHub/
 │
 ├── static/
-│   ├── css/
-│   │   ├── style.css         # Welcome Page Styles
-│   │   ├── auth.css          # Login/Signup Styles
-│   │   └── dashboard.css     # User & Admin Dashboard Styles
-│   └── images/               # Background & UI Images
+│   ├── css/          # Styling (dashboard, auth, style)
+│   └── images/       # Background images & UI assets
 │
 ├── templates/
-│   ├── index.html            # Welcome/Landing Page
-│   ├── auth.html             # Login & Signup Page
-│   ├── dashboard.html        # User Chat Interface
-│   ├── profile.html          # User Profile Management
-│   └── admin.html            # Admin Control Panel
+│   ├── index.html    # Landing Page
+│   ├── auth.html     # Login/Signup UI
+│   ├── dashboard.html# User Chat Interface
+│   ├── profile.html  # User Profile
+│   └── admin.html    # Admin Panel UI
 │
-├── app.py                    # Main Flask Application & Routes
-├── auth.py                   # Authentication Logic (Blueprint)
-├── database.py               # MySQL Connection Helper
-├── requirements.txt          # Python Dependencies
-├── .env                      # Environment Variables
-└── README.md                 # Project Documentation
-👨‍💻 Admin Access
-To access the Admin Dashboard:
-
-Sign up with the Role selected as "Admin".
-
-Or, manually insert an admin into the database:
-(Use the generate_password_hash from werkzeug.security in Python to get a hash)
-
-sql
-INSERT INTO users (name, email, password_hash, role) VALUES ('Admin', 'admin@heritagehub.com', 'hashed_password_here', 'admin');
-Navigate to http://127.0.0.1:5000/admin.
-
-🔮 Future Scope
+├── app.py            # Main Flask Application & Routes
+├── auth.py           # Authentication Logic (Blueprint)
+├── database.py       # MySQL Connection
+├── requirements.txt  # Dependencies
+├── .env              # Environment variables
+└── README.md         # Project Documentation
+🚀 Future Scope
 Multi-Language Support: Adding Hindi, Marathi, and Sanskrit translations for AI responses.
 
 3D Model Generation: Using AI to convert 2D images of monuments into 3D viewable models.
 
-Community Contribution: Allowing users to upload verified historical data to the database.
+Community Contribution: Allowing verified users to upload historical data to a public database.
 
 Offline Mode: Integrating a local LLM (like Llama 3 via Ollama) for offline heritage analysis.
-
